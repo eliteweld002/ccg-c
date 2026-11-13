@@ -1,16 +1,29 @@
 import { Analytics } from '@vercel/analytics/next'
 import { Archivo } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
-import { pageMetadata, siteOrigin } from '@/lib/site-metadata'
-import { contactPhoneHref, contactStreet, contactLocality, contactPostalCode } from '@/lib/contact-options'
+import { pageMetadata, siteOrigin, siteName, siteShortName, homeTitle, homeDescription } from '@/lib/site-metadata'
+import { siteGraph } from '@/lib/schema'
+import { JsonLd } from '@/components/json-ld'
 import './globals.css'
 
 const archivo = Archivo({ subsets: ['latin'], variable: '--font-archivo' })
 
+// Optional search-engine ownership tags: set in the hosting environment, never hard-coded.
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+const bingVerification = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+
 export const metadata: Metadata = {
-  ...pageMetadata('/', 'Industrial Gases & Forklift Propane', 'Explore industrial gases, cylinder supply and forklift propane with Canada Compressed Gas Corporation in Ontario, Canada. Request a written quote.'),
+  ...pageMetadata('/', homeTitle, homeDescription),
   metadataBase: new URL(siteOrigin),
-  title: { default: 'Canada Compressed Gas Corporation | Industrial Gases & Forklift Propane', template: '%s | Canada Compressed Gas' },
+  title: { default: `${siteName} | ${homeTitle}`, template: `%s | ${siteShortName}` },
+  applicationName: siteName,
+  authors: [{ name: siteName, url: siteOrigin }],
+  creator: siteName,
+  publisher: siteName,
+  category: 'Industrial gases',
+  formatDetection: { telephone: true, email: true, address: true },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
+  ...(googleVerification || bingVerification ? { verification: { ...(googleVerification ? { google: googleVerification } : {}), ...(bingVerification ? { other: { 'msvalidate.01': bingVerification } } : {}) } } : {}),
   icons: {
     icon: [
       {
@@ -35,9 +48,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-CA">
       <body className={`${archivo.variable} antialiased`}>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'Organization', name: 'Canada Compressed Gas Corporation', url: siteOrigin, logo: siteOrigin + '/images/ccg-c-logo-compact.webp', email: 'sales@ccgcorporation.ca', telephone: contactPhoneHref.slice(4), address: { '@type': 'PostalAddress', streetAddress: contactStreet, addressLocality: contactLocality, postalCode: contactPostalCode, addressRegion: 'Ontario', addressCountry: 'CA' } }) }}/>
+        <JsonLd data={siteGraph()} />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -18,3 +18,4 @@ out/
 .remember/
 .playwright-mcp/
 package-lock.json
+*.tsbuildinfo

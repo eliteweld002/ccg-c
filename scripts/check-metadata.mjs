@@ -22,7 +22,10 @@ const titles = new Set()
 for (const path of routes) {
   const result = await pages.generateMetadata({ params: Promise.resolve({ slug: path.slice(1).split('/') }) })
   assert.ok(typeof result.title === 'string' && result.title.length > 0, path + ': missing title')
-  assert.ok(result.description?.length > 30, path + ': missing description')
+  // Search-result snippets truncate around 60 characters (title incl. " | CCG-C") and ~160 (description).
+  assert.ok(result.title.length <= 50, path + ': title too long for search results (' + result.title.length + ')')
+  assert.ok(result.description.length >= 110 && result.description.length <= 160, path + ': description should be 110-160 characters (' + result.description?.length + ')')
+  assert.doesNotMatch(String(site.siteOrigin), /chatgpt\.site|vercel\.app|localhost/, 'siteOrigin must be the real production domain')
   assert.equal(result.alternates.canonical, path + '/', path + ': incorrect canonical URL')
   assert.ok(fs.existsSync('public' + result.openGraph.images[0].url), path + ': missing share image')
   titles.add(result.title)
